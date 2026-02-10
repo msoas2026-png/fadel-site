@@ -1,0 +1,312 @@
+:root{
+  --bg-1:#0b1220;
+  --bg-2:#0f1b2d;
+  --card:#121f33;
+  --card-2:#17263d;
+  --stroke:rgba(255,255,255,.08);
+  --text:#e8eefc;
+  --muted:rgba(232,238,252,.65);
+  --yellow:#f5c400;
+  --green:#22c55e;
+}
+
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  font-family: "Cairo", system-ui, -apple-system, "Segoe UI", Tahoma, Arial;
+  background: radial-gradient(1200px 600px at 20% 0%, #142544 0%, var(--bg-1) 55%, #070b14 100%);
+  color: var(--text);
+}
+
+.mobile-wrap{
+  width: min(420px, 100%);
+  margin: 0 auto;
+  padding: 18px 14px 26px;
+}
+
+.top-card{
+  background: linear-gradient(180deg, var(--card) 0%, var(--bg-2) 100%);
+  border: 1px solid var(--stroke);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 20px 45px rgba(0,0,0,.35);
+  position: relative;
+  overflow: hidden;
+}
+
+.big-gift{
+  position:absolute;
+  inset:auto -30px 10px auto;
+  font-size: 140px;
+  opacity:.08;
+}
+
+.badge-icon{
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(245,196,0,.14);
+  border: 1px solid rgba(245,196,0,.18);
+}
+
+.kpi{
+  font-size: 42px;
+  font-weight: 800;
+  margin-top: 10px;
+}
+
+.section{
+  margin-top: 16px;
+  background: rgba(18,31,51,.55);
+  border: 1px solid var(--stroke);
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.section-title{
+  font-size: 22px;
+  font-weight: 800;
+  margin: 6px 6px 12px;
+}
+
+.quick-item{
+  background: linear-gradient(180deg, var(--card) 0%, var(--card-2) 100%);
+  border: 1px solid var(--stroke);
+  border-radius: 18px;
+  padding: 18px 14px;
+  text-align:center;
+  margin-bottom: 12px;
+}
+
+.round-icon{
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin: 0 auto 10px;
+  border: 1px solid var(--stroke);
+}
+
+.icon-blue{ background: rgba(59,130,246,.14); }
+.icon-yellow{ background: rgba(245,196,0,.14); }
+.icon-green{ background: rgba(34,197,94,.14); }
+
+.quick-item a{
+  color: var(--text);
+  text-decoration:none;
+  display:block;
+  font-weight: 700;
+}
+
+.status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 10px 6px 2px;
+}
+
+.dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--green);
+  box-shadow: 0 0 0 6px rgba(34,197,94,.12);
+}
+
+.muted{ color: var(--muted); }
+.small{ font-size: 13px; }
+
+.btn-yellow{
+  width:100%;
+  border:none;
+  background: var(--yellow);
+  color:#09101f;
+  font-weight: 800;
+  padding: 12px 14px;
+  border-radius: 14px;
+}
+
+.input{
+  width:100%;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  padding: 12px 12px;
+  color: var(--text);
+  outline: none;
+}
+.input::placeholder{ color: rgba(232,238,252,.45); }
+/* تحسين عام */
+.top-card, .section, .quick-item{
+  backdrop-filter: blur(10px);
+}
+
+/* أزرار أجمل */
+.btn-yellow{
+  cursor:pointer;
+  transition: transform .12s ease, filter .12s ease;
+}
+.btn-yellow:active{
+  transform: scale(0.98);
+}
+.btn-yellow:hover{
+  filter: brightness(1.02);
+}
+
+/* مدخلات أحلى */
+.input:focus{
+  border-color: rgba(245,196,0,.35);
+  box-shadow: 0 0 0 6px rgba(245,196,0,.08);
+}
+
+/* عنوان الصفحة */
+.page-title{
+  font-size: 22px;
+  font-weight: 900;
+  margin: 10px 6px 0;
+}
+.page-subtitle{
+  color: var(--muted);
+  font-weight: 700;
+  margin: 6px 6px 0;
+  font-size: 13px;
+}
+.page-title{ font-size:22px; font-weight:900; margin: 6px 0 0; }
+.page-subtitle{ color: var(--muted); font-weight:700; margin-top:6px; font-size:13px; }
+
+/* ===== FIX LAYOUT CENTER + MOBILE ===== */
+html, body{
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+  overflow-x:hidden;
+  font-family:'Cairo', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: radial-gradient(1200px 600px at 50% -10%, rgba(59,130,246,.20), transparent 60%),
+              linear-gradient(180deg, #070b14 0%, #0a1222 60%, #070b14 100%);
+}
+
+/* خليه بالنص دائماً */
+body{
+  display:flex;
+  justify-content:center;
+}
+
+/* هذا أهم سطرين */
+.mobile-wrap{
+  width:min(420px, 100%);
+  margin:0 auto;
+  padding:18px 14px 28px;
+  box-sizing:border-box;
+}
+
+/* ===== تحسين شكل التنقل السريع ===== */
+.section{
+  margin-top:14px;
+}
+
+.section-title{
+  font-size:20px;
+  font-weight:900;
+  margin:10px 6px 12px;
+}
+
+.quick-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 14px;
+  border-radius:18px;
+  background: rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  margin-bottom:12px;
+  width:100%;
+  box-sizing:border-box;
+}
+
+/* خلي الضغط على الكرت كله */
+.quick-item a{
+  display:block;
+  width:100%;
+  color:#eaf0ff;
+  text-decoration:none;
+  font-weight:900;
+  font-size:18px;
+}
+
+/* الدائرة مال الأيقونة */
+.round-icon{
+  width:56px;
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:18px;
+  font-size:22px;
+  flex:0 0 56px;
+}
+
+/* ألوان الأيقونات (إذا مو موجودة عندك) */
+.icon-blue{ background: rgba(59,130,246,.16); border:1px solid rgba(59,130,246,.22); }
+.icon-yellow{ background: rgba(245,196,0,.16); border:1px solid rgba(245,196,0,.22); }
+.icon-green{ background: rgba(34,197,94,.16); border:1px solid rgba(34,197,94,.22); }
+
+/* ===== تحسين الكروت الرئيسية ===== */
+.top-card{
+  width:100%;
+  box-sizing:border-box;
+  border-radius:20px;
+  background: rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow: 0 14px 40px rgba(0,0,0,.28);
+  padding:16px;
+}
+
+.kpi{
+  font-size:46px;
+  font-weight:900;
+  letter-spacing: .5px;
+}
+
+.muted{
+  color: rgba(230, 238, 255, .65);
+}
+
+.status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  border-radius:16px;
+  background: rgba(34,197,94,.10);
+  border: 1px solid rgba(34,197,94,.18);
+  font-weight:800;
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#22c55e;
+  box-shadow:0 0 0 6px rgba(34,197,94,.15);
+}
+
+/* زر أصفر (إذا تستخدمه) */
+.btn-yellow{
+  width:100%;
+  border:0;
+  border-radius:16px;
+  padding:12px 14px;
+  font-weight:900;
+  cursor:pointer;
+  background:#f5c400;
+  color:#0a1222;
+}

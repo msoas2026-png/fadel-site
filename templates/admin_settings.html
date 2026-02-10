@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>إعدادات الأدمن</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+
+<body>
+<div class="mobile-wrap">
+
+<div class="top-card" style="padding:18px;">
+<div class="badge-icon">⚙️</div>
+
+<div style="margin-top:12px;font-size:20px;font-weight:900;">
+تغيير بيانات الأدمن
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat,msg in messages %}
+<div style="margin-top:10px;padding:10px;border-radius:12px;background:rgba(34,197,94,.15);font-weight:900;">
+{{ msg }}
+</div>
+{% endfor %}
+{% endwith %}
+
+<form method="post" action="{{ url_for('admin_settings_post') }}" style="margin-top:14px;">
+
+<input class="input" name="email" placeholder="الإيميل الجديد" required style="margin-bottom:10px;">
+<input class="input" name="password" placeholder="كلمة السر الجديدة" required style="margin-bottom:12px;">
+
+<button class="btn-yellow" type="submit">
+حفظ التغييرات
+</button>
+
+</form>
+
+<div style="margin-top:12px;text-align:center;">
+<a href="/admin" style="color:var(--muted);text-decoration:none;font-weight:900;">
+⬅ رجوع للوحة الأدمن
+</a>
+</div>
+
+</div>
+
+</div>
+</body>
+</html>

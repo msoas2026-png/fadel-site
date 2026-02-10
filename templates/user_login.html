@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ site_name }} - تسجيل دخول</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+<body>
+  <div class="mobile-wrap">
+
+    <div class="top-card">
+      <div class="badge-icon">✨</div>
+      <div style="margin-top:10px;">
+        <div class="page-title">{{ site_name }}</div>
+        <div class="page-subtitle">تسجيل دخول الفني</div>
+      </div>
+    </div>
+
+    <div class="section">
+      {% if error %}
+        <div style="padding:10px;border-radius:14px;margin-bottom:10px;border:1px solid rgba(239,68,68,.18);background:rgba(239,68,68,.10);">
+          {{ error }}
+        </div>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('user_login_post') }}">
+        <div style="margin-bottom:10px;">
+          <input class="input" name="phone" placeholder="رقم الهاتف" required>
+        </div>
+        <div style="margin-bottom:12px;">
+          <input class="input" name="password" type="password" placeholder="كلمة السر" required>
+        </div>
+        <button class="btn-yellow" type="submit">دخول</button>
+      </form>
+
+      <div style="margin-top:12px;">
+        <a href="{{ url_for('admin_login') }}" style="color:var(--muted);text-decoration:none;font-weight:800;">دخول الأمن</a>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

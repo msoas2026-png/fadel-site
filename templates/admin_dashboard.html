@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ site_name }} - لوحة الأدمن</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+<body>
+  <div class="mobile-wrap">
+
+    <!-- كرت الهدايا المتاحة -->
+    <div class="top-card">
+      <div class="badge-icon" aria-hidden="true">🎁</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-top:10px;">
+        <div>
+          <div class="muted" style="font-weight:800;">الهدايا المتاحة</div>
+          <div class="kpi">{{ stats.gifts_available }}</div>
+        </div>
+        <div class="big-gift" aria-hidden="true">🎁</div>
+      </div>
+    </div>
+
+    <!-- التنقل السريع (بدون زر منتجات) -->
+    <div class="section">
+      <div class="section-title">التنقل السريع</div>
+
+      <!-- إدارة الفنيين -->
+      <a class="quick-item" href="{{ url_for('admin_techs') }}" style="text-decoration:none;color:inherit;">
+        <div class="round-icon icon-blue">👥</div>
+        <div style="font-weight:900;">إدارة الفنيين</div>
+      </a>
+
+      <!-- عرض الهدايا -->
+      <a class="quick-item" href="{{ url_for('admin_gifts') }}" style="text-decoration:none;color:inherit;">
+        <div class="round-icon icon-yellow">🎁</div>
+        <div style="font-weight:900;">عرض الهدايا</div>
+      </a>
+
+      <!-- إضافة نقاط -->
+      <a class="quick-item" href="{{ url_for('admin_points') }}" style="text-decoration:none;color:inherit;margin-bottom:4px;">
+        <div class="round-icon icon-green">📈</div>
+        <div style="font-weight:900;">إضافة نقاط</div>
+      </a>
+    </div>
+
+    <!-- نظرة عامة -->
+    <div class="section">
+      <div class="section-title">نظرة عامة على المعلومات</div>
+
+      <div class="top-card" style="padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div>
+            <div class="muted" style="font-weight:800;">فنيون شغالون</div>
+            <div class="kpi" style="font-size:34px;margin-top:8px;">{{ stats.technicians_count }}</div>
+            <div class="small" style="margin-top:6px;display:inline-block;background:rgba(245,196,0,.14);border:1px solid rgba(245,196,0,.18);padding:6px 10px;border-radius:999px;">
+              +12% هذا الشهر
+            </div>
+          </div>
+          <div style="font-size:90px;opacity:.10;">👥</div>
+        </div>
+      </div>
+
+      <div class="top-card" style="padding:14px;margin-top:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div>
+            <div class="muted" style="font-weight:800;">إجمالي النقاط المصدرة</div>
+            <div class="kpi" style="font-size:34px;margin-top:8px;">{{ stats.points_total }}</div>
+          </div>
+          <div style="font-size:90px;opacity:.10;">📈</div>
+        </div>
+      </div>
+
+      <div class="top-card" style="padding:14px;margin-top:12px;background:linear-gradient(180deg, rgba(245,196,0,.12) 0%, rgba(18,31,51,.55) 100%);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div>
+            <div class="muted" style="font-weight:800;">أفضل أداء</div>
+            <div style="font-size:28px;font-weight:900;margin-top:10px;">{{ stats.best_performance }}</div>
+          </div>
+          <div style="font-size:90px;opacity:.10;">🏆</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- حالة النظام -->
+    <div class="section">
+      <div class="section-title">حالة النظام</div>
+      <div class="status">
+        <span class="dot"></span>
+        <span>{{ stats.db_status }}</span>
+      </div>
+
+      <div style="margin-top:10px;">
+        <a href="{{ url_for('admin_logout') }}" style="color:var(--muted);text-decoration:none;font-weight:800;">تسجيل خروج</a>
+      </div>
+    </div>
+
+    <div style="margin-top:10px;">
+       <a href="{{ url_for('admin_settings') }}"
+        style="color:#f5c400;text-decoration:none;font-weight:900;">
+     ⚙️ إعدادات الأدمن
+       </a>
+    </div>
+
+
+  </div>
+</body>
+</html>

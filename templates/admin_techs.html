@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ site_name }} - إدارة الفنيين</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+<body>
+  <div class="mobile-wrap">
+
+    <div class="top-card">
+      <div class="badge-icon">👥</div>
+      <div style="margin-top:10px;">
+        <div class="page-title">إدارة الفنيين</div>
+        <div class="page-subtitle">كل المعلومات (اسم/هاتف/اختصاص/كلمة السر/نقاط)</div>
+      </div>
+      <div style="margin-top:12px;">
+        <a class="btn-yellow" href="{{ url_for('admin_tech_new') }}" style="display:block;text-align:center;text-decoration:none;">+ إضافة فني جديد</a>
+      </div>
+      <div style="margin-top:10px;">
+        <a href="{{ url_for('admin_dashboard') }}" style="color:var(--muted);text-decoration:none;font-weight:800;">⬅ رجوع</a>
+      </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="section">
+          {% for cat, msg in messages %}
+            <div style="padding:10px;border-radius:14px;margin-bottom:8px;border:1px solid var(--stroke);
+              background: {{ 'rgba(34,197,94,.10)' if cat=='ok' else 'rgba(239,68,68,.10)' }};">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="section">
+      <div class="section-title">قائمة الفنيين ({{ techs|length }})</div>
+
+      {% if techs|length == 0 %}
+        <div class="muted">لا يوجد فنيين حالياً.</div>
+      {% endif %}
+
+      {% for t in techs %}
+        <div class="quick-item" style="text-align:right;">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
+            <div style="flex:1;">
+              <div style="font-weight:900;font-size:18px;">{{ t.name }}</div>
+
+              <div class="muted small" style="margin-top:6px;">📞 {{ t.phone }}</div>
+              <div class="muted small" style="margin-top:6px;">⭐ {{ t.specialty or 'بدون' }}</div>
+              <div class="muted small" style="margin-top:6px;">🔑 كلمة السر: <b style="color:var(--text)">{{ t.password }}</b></div>
+
+              <div class="small" style="margin-top:10px;display:inline-block;background:rgba(245,196,0,.14);border:1px solid rgba(245,196,0,.18);padding:6px 10px;border-radius:999px;">
+                النقاط: {{ t.points }}
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:120px;">
+              <a href="{{ url_for('admin_tech_edit', tech_id=t.id) }}" class="btn-yellow"
+                 style="display:block;text-align:center;text-decoration:none;padding:10px;border-radius:14px;">
+                 تعديل
+              </a>
+
+              <form method="post" action="{{ url_for('admin_tech_delete', tech_id=t.id) }}"
+                    onsubmit="return confirm('تأكيد حذف الفني؟');">
+                <button type="submit" class="btn-yellow" style="background:#ef4444;color:#fff;">حذف</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</body>
+</html>

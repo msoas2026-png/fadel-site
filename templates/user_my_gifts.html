@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ site_name }} - الهدايا المكتسبة</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+<body>
+  <div class="mobile-wrap">
+
+    <div class="top-card">
+      <div class="badge-icon">📜</div>
+      <div style="margin-top:10px;">
+        <div class="page-title">الهدايا المكتسبة</div>
+        <div class="page-subtitle">كل هدية مع تاريخ الربح</div>
+      </div>
+      <div style="margin-top:10px;">
+        <a href="{{ url_for('user_dashboard') }}" style="color:var(--muted);text-decoration:none;font-weight:800;">⬅ رجوع</a>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">السجل ({{ rows|length }})</div>
+
+      {% if rows|length == 0 %}
+        <div class="muted">لا توجد هدايا مكتسبة بعد.</div>
+      {% endif %}
+
+      {% for r in rows %}
+        <div class="quick-item" style="padding:12px;text-align:right;">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div style="width:72px;height:72px;border-radius:16px;overflow:hidden;border:1px solid var(--stroke);background:rgba(255,255,255,.04);flex:0 0 auto;">
+              {% if r.image_filename %}
+                <img src="{{ url_for('static', filename='uploads/' ~ r.image_filename) }}"
+                     style="width:100%;height:100%;object-fit:cover;" alt="">
+              {% else %}
+                <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:26px;">🎁</div>
+              {% endif %}
+            </div>
+
+            <div style="flex:1;">
+              <div style="font-weight:900;">{{ r.name }}</div>
+              <div class="muted small" style="margin-top:4px;">📅 {{ r.created_at }}</div>
+              <div class="small" style="margin-top:8px;display:inline-block;background:rgba(245,196,0,.14);border:1px solid rgba(245,196,0,.18);padding:6px 10px;border-radius:999px;">
+                نقاط مصروفة: {{ r.points_spent }}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ site_name }} - مبروك</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+<body>
+  <div class="mobile-wrap">
+
+    <div class="top-card" style="background:linear-gradient(180deg, rgba(34,197,94,.14) 0%, var(--bg-2) 100%);">
+      <div class="badge-icon" style="background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.22);">✅</div>
+      <div style="margin-top:10px;">
+        <div class="page-title">مبروك! 🎉</div>
+        <div class="page-subtitle">اذهب للمكتب لاستلام هديتك</div>
+        <div style="margin-top:12px;" class="small">الرصيد المتبقي: <b>{{ new_points }}</b> نقطة</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <a class="btn-yellow" href="{{ url_for('user_gifts') }}" style="display:block;text-align:center;text-decoration:none;">رجوع للهدايا</a>
+      <div style="margin-top:10px;">
+        <a href="{{ url_for('user_dashboard') }}" style="color:var(--muted);text-decoration:none;font-weight:800;">⬅ حسابي</a>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
