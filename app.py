@@ -10,18 +10,23 @@ SITE_NAME = "مجمع فاضل البديري"
 UPLOAD_DIR = os.path.join(app.root_path, "static", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+
 # ---------- Helpers ----------
 def admin_required():
     return session.get("admin_logged_in") is True
 
+
 def user_required():
     return session.get("user_logged_in") is True
+
 
 def current_admin_id():
     return session.get("admin_id")
 
+
 def current_user_id():
     return session.get("user_id")
+
 
 # ---------- Init DB + seed super admin ----------
 def bootstrap():
@@ -36,12 +41,15 @@ def bootstrap():
         con.commit()
     con.close()
 
+
 bootstrap()
+
 
 # ---------- Admin Auth ----------
 @app.get("/admin/login")
 def admin_login():
     return render_template("admin_login.html", site_name=SITE_NAME)
+
 
 @app.post("/admin/login")
 def admin_login_post():
@@ -52,7 +60,6 @@ def admin_login_post():
     row = con.execute("SELECT * FROM admins WHERE email=?", (email,)).fetchone()
     con.close()
 
-    # بدون هاش
     if row and row["password"] == password:
         session["admin_logged_in"] = True
         session["admin_id"] = row["id"]
@@ -61,10 +68,12 @@ def admin_login_post():
 
     return render_template("admin_login.html", site_name=SITE_NAME, error="بيانات الدخول غير صحيحة")
 
+
 @app.get("/admin/logout")
 def admin_logout():
     session.clear()
     return redirect(url_for("admin_login"))
+
 
 # ---------- Admin Dashboard ----------
 @app.get("/admin")
@@ -88,6 +97,7 @@ def admin_dashboard():
     }
     return render_template("admin_dashboard.html", site_name=SITE_NAME, stats=stats)
 
+
 # ---------- Admin: Technicians ----------
 @app.get("/admin/techs")
 def admin_techs():
@@ -98,11 +108,13 @@ def admin_techs():
     con.close()
     return render_template("admin_techs.html", site_name=SITE_NAME, techs=techs)
 
+
 @app.get("/admin/techs/new")
 def admin_tech_new():
     if not admin_required():
         return redirect(url_for("admin_login"))
     return render_template("admin_tech_form.html", site_name=SITE_NAME, mode="new")
+
 
 @app.post("/admin/techs/new")
 def admin_tech_new_post():
@@ -134,6 +146,7 @@ def admin_tech_new_post():
     flash("تمت إضافة الفني بنجاح", "ok")
     return redirect(url_for("admin_techs"))
 
+
 @app.get("/admin/techs/<int:tech_id>/edit")
 def admin_tech_edit(tech_id):
     if not admin_required():
@@ -144,6 +157,7 @@ def admin_tech_edit(tech_id):
     if not tech:
         return redirect(url_for("admin_techs"))
     return render_template("admin_tech_form.html", site_name=SITE_NAME, mode="edit", tech=tech)
+
 
 @app.post("/admin/techs/<int:tech_id>/edit")
 def admin_tech_edit_post(tech_id):
@@ -184,6 +198,7 @@ def admin_tech_edit_post(tech_id):
     flash("تم التعديل بنجاح", "ok")
     return redirect(url_for("admin_techs"))
 
+
 @app.post("/admin/techs/<int:tech_id>/delete")
 def admin_tech_delete(tech_id):
     if not admin_required():
@@ -195,19 +210,20 @@ def admin_tech_delete(tech_id):
     flash("تم حذف الفني", "ok")
     return redirect(url_for("admin_techs"))
 
+
 # ---------- Admin: Add Points ----------
 @app.get("/admin/points")
 def admin_points():
     if not admin_required():
         return redirect(url_for("admin_login"))
 
-    # كل 10,000 دينار = 1 نقطة  => 1,000,000 = 100 نقطة
     iqd_per_point = int(db.get_setting("iqd_per_point", "10000"))
 
     con = db.connect()
     techs = con.execute("SELECT id,name,phone,points FROM technicians ORDER BY name").fetchall()
     con.close()
     return render_template("admin_points.html", site_name=SITE_NAME, techs=techs, iqd_per_point=iqd_per_point)
+
 
 @app.post("/admin/points/add")
 def admin_points_add():
@@ -216,7 +232,6 @@ def admin_points_add():
 
     tech_id = int(request.form.get("tech_id", "0"))
     amount = int(request.form.get("amount", "0") or 0)
-
     iqd_per_point = int(db.get_setting("iqd_per_point", "10000"))
 
     if tech_id <= 0 or amount <= 0:
@@ -237,6 +252,7 @@ def admin_points_add():
     flash(f"تمت إضافة {points} نقطة", "ok")
     return redirect(url_for("admin_points"))
 
+
 # ---------- Admin: Gifts ----------
 @app.get("/admin/gifts")
 def admin_gifts():
@@ -247,11 +263,13 @@ def admin_gifts():
     con.close()
     return render_template("admin_gifts.html", site_name=SITE_NAME, gifts=gifts)
 
+
 @app.get("/admin/gifts/new")
 def admin_gift_new():
     if not admin_required():
         return redirect(url_for("admin_login"))
     return render_template("admin_gift_form.html", site_name=SITE_NAME)
+
 
 @app.post("/admin/gifts/new")
 def admin_gift_new_post():
@@ -283,6 +301,7 @@ def admin_gift_new_post():
     flash("تمت إضافة الهدية", "ok")
     return redirect(url_for("admin_gifts"))
 
+
 @app.post("/admin/gifts/<int:gift_id>/toggle")
 def admin_gift_toggle(gift_id):
     if not admin_required():
@@ -296,9 +315,32 @@ def admin_gift_toggle(gift_id):
     con.close()
     return redirect(url_for("admin_gifts"))
 
+
+@app.post("/admin/gifts/<int:gift_id>/delete")
+def admin_delete_gift(gift_id):
+    if not admin_required():
+        return redirect(url_for("admin_login"))
+
+    # جلب الهدية حتى نحذف الصورة من uploads
+    gift = db.get_gift_by_id(gift_id)
+    if gift and gift["image_filename"]:
+        img_path = os.path.join(UPLOAD_DIR, gift["image_filename"])
+        try:
+            if os.path.exists(img_path):
+                os.remove(img_path)
+        except Exception:
+            pass
+
+    db.delete_gift(gift_id)
+    flash("تم حذف الهدية", "ok")
+    return redirect(url_for("admin_gifts"))
+
+
+# ---------- Public/Home ----------
 @app.get("/")
 def home():
     return render_template("index.html", site_name=SITE_NAME)
+
 
 # ---------- User Auth (Technician) ----------
 @app.get("/login")
@@ -315,7 +357,6 @@ def user_login_post():
     user = con.execute("SELECT * FROM technicians WHERE phone=?", (phone,)).fetchone()
     con.close()
 
-    # بدون هاش
     if user and user["password"] == password:
         session["user_logged_in"] = True
         session["user_id"] = user["id"]
@@ -323,10 +364,12 @@ def user_login_post():
 
     return render_template("user_login.html", site_name=SITE_NAME, error="بيانات الدخول غير صحيحة")
 
+
 @app.get("/logout")
 def user_logout():
     session.clear()
     return redirect(url_for("user_login"))
+
 
 # ---------- User Pages ----------
 @app.get("/me")
@@ -338,6 +381,7 @@ def user_dashboard():
     con.close()
     return render_template("user_dashboard.html", site_name=SITE_NAME, user=user)
 
+
 @app.get("/gifts")
 def user_gifts():
     if not user_required():
@@ -348,6 +392,7 @@ def user_gifts():
     gifts = con.execute("SELECT * FROM gifts WHERE is_active=1 ORDER BY points_required ASC").fetchall()
     con.close()
     return render_template("user_gifts.html", site_name=SITE_NAME, user=user, gifts=gifts)
+
 
 @app.post("/gifts/<int:gift_id>/redeem")
 def user_redeem(gift_id):
@@ -379,6 +424,7 @@ def user_redeem(gift_id):
 
     return render_template("user_congrats.html", site_name=SITE_NAME, new_points=new_points)
 
+
 @app.get("/my-gifts")
 def user_my_gifts():
     if not user_required():
@@ -396,16 +442,21 @@ def user_my_gifts():
     return render_template("user_my_gifts.html", site_name=SITE_NAME, rows=rows)
 
 
+# ---------- Winners (Public) ----------
+@app.get("/winners")
+def winners():
+    winners_list = db.get_winners()
+    return render_template("winners.html", site_name=SITE_NAME, winners=winners_list)
+
+
 # ===============================
 # ADMIN SETTINGS (تغيير بيانات الأدمن)
 # ===============================
-
 @app.get("/admin/settings")
 def admin_settings():
     if not admin_required():
         return redirect(url_for("admin_login"))
 
-    # فقط الأدمن الأساسي
     if session.get("admin_role") != "super":
         return "غير مسموح"
 
@@ -420,16 +471,15 @@ def admin_settings_post():
     if session.get("admin_role") != "super":
         return "غير مسموح"
 
-    new_email = request.form.get("email","").strip()
-    new_pass = request.form.get("password","").strip()
+    new_email = request.form.get("email", "").strip()
+    new_pass = request.form.get("password", "").strip()
 
     if not new_email or not new_pass:
         flash("اكتب ايميل وكلمة سر", "err")
         return redirect(url_for("admin_settings"))
 
     con = db.connect()
-    con.execute("UPDATE admins SET email=?, password=? WHERE role='super'",
-                (new_email, new_pass))
+    con.execute("UPDATE admins SET email=?, password=? WHERE role='super'", (new_email, new_pass))
     con.commit()
     con.close()
 
@@ -439,5 +489,3 @@ def admin_settings_post():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-

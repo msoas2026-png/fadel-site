@@ -3,28 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{ site_name }} - الهدايا</title>
+  <title>{{ site_name }} - إدارة الهدايا</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
 </head>
 <body>
   <div class="mobile-wrap">
 
     <div class="top-card">
-      <div class="badge-icon">🎁</div>
+      <div class="badge-icon">🛠️</div>
       <div style="margin-top:10px;">
         <div class="page-title">إدارة الهدايا</div>
-        <div class="page-subtitle">إضافة هدية + تفعيل/إيقاف</div>
-      </div>
-      <div style="margin-top:12px;">
-        <a class="btn-yellow" href="{{ url_for('admin_gift_new') }}" style="display:block;text-align:center;text-decoration:none;">+ إضافة هدية</a>
+        <div class="page-subtitle">إضافة / تفعيل / حذف</div>
       </div>
       <div style="margin-top:10px;">
-        <a href="{{ url_for('admin_dashboard') }}" style="color:var(--muted);text-decoration:none;font-weight:800;">⬅ رجوع للوحة التحكم</a>
+        <a href="{{ url_for('admin_dashboard') }}" style="color:var(--muted);text-decoration:none;font-weight:800;">⬅ رجوع</a>
       </div>
     </div>
 
@@ -42,38 +38,59 @@
     {% endwith %}
 
     <div class="section">
-      <div class="section-title">كل الهدايا</div>
+      <div class="section-title">الهدايا</div>
 
-      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
-        {% for g in gifts %}
-          <div class="quick-item" style="padding:12px;">
-            <div style="border-radius:16px;overflow:hidden;border:1px solid var(--stroke);background:rgba(255,255,255,.04);height:120px;">
-              {% if g.image_filename %}
-                <img src="{{ url_for('static', filename='uploads/' ~ g.image_filename) }}"
-                     style="width:100%;height:100%;object-fit:cover;" alt="">
-              {% else %}
-                <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:34px;">🎁</div>
-              {% endif %}
-            </div>
-
-            <div style="margin-top:10px;font-weight:900;">{{ g.name }}</div>
-            <div class="muted small" style="margin-top:4px;">{{ g.points_required }} نقطة</div>
-
-            <form method="post" action="{{ url_for('admin_gift_toggle', gift_id=g.id) }}" style="margin-top:10px;">
-              <button class="btn-yellow" type="submit"
-                      style="padding:10px;border-radius:14px;
-                      background: {{ 'var(--yellow)' if g.is_active==1 else 'rgba(255,255,255,.10)' }};
-                      color: {{ '#09101f' if g.is_active==1 else 'var(--text)' }};">
-                {{ 'مفعّلة' if g.is_active==1 else 'موقوفة' }}
-              </button>
-            </form>
-          </div>
-        {% endfor %}
+      <div class="quick-item" style="padding:12px;">
+        <a href="{{ url_for('admin_gift_new') }}" style="font-weight:900;">➕ إضافة هدية جديدة</a>
       </div>
 
       {% if gifts|length == 0 %}
-        <div class="muted">لا توجد هدايا حالياً.</div>
+        <div class="muted">لا توجد هدايا.</div>
       {% endif %}
+
+      {% for g in gifts %}
+        <div class="quick-item" style="padding:12px;text-align:right;">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div class="gift-thumb">
+              {% if g.image_filename %}
+                <img src="{{ url_for('static', filename='uploads/' ~ g.image_filename) }}" alt="">
+              {% else %}
+                <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:26px;">🎁</div>
+              {% endif %}
+            </div>
+
+            <div style="flex:1;">
+              <div style="font-weight:900;">{{ g.name }}</div>
+              <div class="muted small" style="margin-top:4px;">{{ g.points_required }} نقطة</div>
+
+              <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+                <form method="post" action="{{ url_for('admin_gift_toggle', gift_id=g.id) }}">
+                  <button class="btn-yellow" type="submit" style="width:auto;padding:10px 14px;border-radius:14px;">
+                    {% if g.is_active == 1 %} تعطيل {% else %} تفعيل {% endif %}
+                  </button>
+                </form>
+
+                <form method="post" action="{{ url_for('admin_delete_gift', gift_id=g.id) }}"
+                      onsubmit="return confirm('متأكد تريد حذف الهدية؟ راح تنحذف أيضاً عمليات الاستبدال المرتبطة بيها.');">
+                  <button type="submit"
+                          style="width:auto;padding:10px 14px;border-radius:14px;border:1px solid rgba(239,68,68,.3);
+                                 background:rgba(239,68,68,.12);color:#ffd7d7;font-weight:900;cursor:pointer;">
+                    🗑 حذف
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+
+    </div>
+
+    <div class="section">
+      <div class="section-title">الرابحين</div>
+      <div class="quick-item" style="padding:12px;">
+        <a href="{{ url_for('winners') }}" style="font-weight:900;">🏆 عرض كل الرابحين</a>
+      </div>
     </div>
 
   </div>

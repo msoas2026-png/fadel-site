@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ site_name }} - الرابحين</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+<body>
+  <div class="mobile-wrap">
+
+    <div class="top-card">
+      <div class="badge-icon">🏆</div>
+      <div style="margin-top:10px;">
+        <div class="page-title">الرابحين</div>
+        <div class="page-subtitle">كل من استبدل هدية</div>
+      </div>
+      <div style="margin-top:10px;">
+        <a href="{{ url_for('home') }}" style="color:var(--muted);text-decoration:none;font-weight:800;">⬅ رجوع</a>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">القائمة ({{ winners|length }})</div>
+
+      {% if winners|length == 0 %}
+        <div class="muted">لا يوجد رابحين بعد.</div>
+      {% endif %}
+
+      {% for w in winners %}
+        <div class="quick-item" style="padding:12px;text-align:right;">
+          <div style="font-weight:900;">👤 {{ w.tech_name }}</div>
+          <div class="muted small" style="margin-top:6px;">🎁 {{ w.gift_name }}</div>
+          <div class="muted small" style="margin-top:6px;">📅 {{ w.won_at }}</div>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</body>
+</html>

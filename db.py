@@ -4,13 +4,16 @@ from datetime import datetime
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "app.db")
 
+
 def connect():
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     return con
 
+
 def now():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
 def init_db():
     con = connect()
@@ -71,14 +74,53 @@ def init_db():
     );
     """)
 
-    # كل 10,000 دينار = 1 نقطة  (يعني 1,000,000 = 100 نقطة)
     cur.execute("INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)", ("iqd_per_point", "10000"))
 
     con.commit()
     con.close()
+
 
 def get_setting(key, default=None):
     con = connect()
     row = con.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
     con.close()
     return row["value"] if row else default
+
+
+def get_gift_by_id(gift_id: int):
+    con = connect()
+    row = con.execute("SELECT * FROM gifts WHERE id=?", (gift_id,)).fetchone()
+    con.close()
+    return row
+
+
+def delete_gift(gift_id: int):
+    """
+    يحذف الهدية + يحذف كل عمليات الاستبدال المرتبطة بيها من redemptions
+    (حتى ما تبقى بيانات مكسورة)
+    """
+    con = connect()
+    con.execute("DELETE FROM redemptions WHERE gift_id=?", (gift_id,))
+    con.execute("DELETE FROM gifts WHERE id=?", (gift_id,))
+    con.commit()
+    con.close()
+
+
+def get_winners():
+    """
+    الرابحين = كل اللي استبدلوا هدية (من redemptions)
+    نرجّع: اسم الفني + اسم الهدية + تاريخ
+    """
+    con = connect()
+    rows = con.execute("""
+        SELECT
+          t.name AS tech_name,
+          g.name AS gift_name,
+          r.created_at AS won_at
+        FROM redemptions r
+        JOIN technicians t ON t.id = r.tech_id
+        JOIN gifts g ON g.id = r.gift_id
+        ORDER BY r.id DESC
+    """).fetchall()
+    con.close()
+    return rows

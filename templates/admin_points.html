@@ -1,64 +1,128 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{ site_name }} - إضافة نقاط</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{{ site_name }} - إضافة نقاط</title>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+<style>
+
+/* ترتيب الحقل والزر */
+.points-form{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+/* مربع المبلغ كبير وواضح */
+.amount-input{
+  flex:1;
+  height:52px;
+  font-size:18px;
+  padding:12px 14px;
+  border-radius:16px;
+}
+
+/* زر الإضافة صغير */
+.btn-add-small{
+  width:auto !important;
+  min-width:70px;
+  padding:8px 12px;
+  height:40px;
+  font-size:14px;
+  border-radius:12px;
+  white-space:nowrap;
+}
+
+/* حذف الأسهم (spinner) */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number]{
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+</style>
 </head>
+
 <body>
-  <div class="mobile-wrap">
+<div class="mobile-wrap">
 
-    <div class="top-card">
-      <div class="badge-icon">📈</div>
-      <div style="margin-top:10px;">
-        <div class="page-title">إضافة نقاط</div>
-        <div class="page-subtitle">التحويل الحالي: كل {{ iqd_per_point }} دينار = 1 نقطة</div>
-      </div>
-      <div style="margin-top:10px;">
-        <a href="{{ url_for('admin_dashboard') }}" style="color:var(--muted);text-decoration:none;font-weight:800;">⬅ رجوع للوحة التحكم</a>
-      </div>
+<div class="top-card">
+  <div class="badge-icon">📈</div>
+  <div style="margin-top:10px;">
+    <div class="page-title">إضافة نقاط</div>
+    <div class="page-subtitle">
+      التحويل الحالي: كل {{ iqd_per_point }} دينار = 1 نقطة
     </div>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="section">
-          {% for cat, msg in messages %}
-            <div style="padding:10px;border-radius:14px;margin-bottom:8px;border:1px solid var(--stroke);
-              background: {{ 'rgba(34,197,94,.10)' if cat=='ok' else 'rgba(239,68,68,.10)' }};">
-              {{ msg }}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-
-    <div class="section">
-      <div class="section-title">اختر فني واضف مبلغ مشتريات</div>
-
-      {% for t in techs %}
-        <div class="quick-item" style="text-align:right;">
-          <div style="font-weight:900;font-size:18px;">{{ t.name }}</div>
-          <div class="muted small" style="margin-top:2px;">📞 {{ t.phone }} • الرصيد: {{ t.points }} نقطة</div>
-
-          <form method="post" action="{{ url_for('admin_points_add') }}" style="margin-top:10px;display:flex;gap:10px;align-items:center;">
-            <input type="hidden" name="tech_id" value="{{ t.id }}">
-            <input class="input" name="amount" type="number" min="1" placeholder="قيمة المشتريات (دينار)" required>
-            <button class="btn-yellow" type="submit" style="min-width:120px;">إضافة</button>
-          </form>
-        </div>
-      {% endfor %}
-
-      {% if techs|length == 0 %}
-        <div class="muted">لا يوجد فنيين لإضافة نقاط لهم.</div>
-      {% endif %}
-    </div>
-
   </div>
+
+  <div style="margin-top:10px;">
+    <a href="{{ url_for('admin_dashboard') }}"
+       style="color:var(--muted);text-decoration:none;font-weight:800;">
+       ⬅ رجوع للوحة التحكم
+    </a>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="section">
+{% for cat, msg in messages %}
+<div style="padding:10px;border-radius:14px;margin-bottom:8px;border:1px solid var(--stroke);
+background: {{ 'rgba(34,197,94,.10)' if cat=='ok' else 'rgba(239,68,68,.10)' }};">
+{{ msg }}
+</div>
+{% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<div class="section">
+<div class="section-title">اختر فني واضف مبلغ مشتريات</div>
+
+{% for t in techs %}
+<div class="quick-item" style="text-align:right;">
+
+<div style="font-weight:900;font-size:18px;">{{ t.name }}</div>
+<div class="muted small" style="margin-top:2px;">
+📞 {{ t.phone }} • الرصيد: {{ t.points }} نقطة
+</div>
+
+<form method="post" action="{{ url_for('admin_points_add') }}" class="points-form">
+
+<input type="hidden" name="tech_id" value="{{ t.id }}">
+
+<input name="amount"
+       type="text"
+       inputmode="numeric"
+       pattern="[0-9]*"
+       class="input amount-input"
+       placeholder="المبلغ بالدينار">
+
+<button class="btn-yellow btn-add-small" type="submit">
+إضافة
+</button>
+
+</form>
+
+</div>
+{% endfor %}
+
+{% if techs|length == 0 %}
+<div class="muted">لا يوجد فنيين لإضافة نقاط لهم.</div>
+{% endif %}
+
+</div>
+</div>
 </body>
 </html>
