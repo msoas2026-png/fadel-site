@@ -130,6 +130,16 @@ def init_db():
         );
         """)
 
+        # ✅ winners (Postgres فقط)
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS winners (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            points INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL
+        );
+        """)
+
         # setting default
         con.execute("""
         INSERT INTO settings(key,value)
@@ -192,6 +202,14 @@ def init_db():
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
     );
+
+    -- ✅ winners (SQLite فقط)
+    CREATE TABLE IF NOT EXISTS winners (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        points INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL
+    );
     """)
     cur.execute("INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)", ("iqd_per_point", "10000"))
     con.commit()
@@ -206,3 +224,42 @@ def get_setting(key, default=None):
 
 
 # ملاحظة: إذا بعدك تستخدم هذني بدوال winners خليهن لاحقاً نكملهن
+
+
+def get_gift_by_id(gift_id: int):
+    con = connect()
+    row = con.execute("SELECT * FROM gifts WHERE id=?", (gift_id,)).fetchone()
+    con.close()
+    return row
+
+
+def delete_gift(gift_id: int):
+    con = connect()
+    con.execute("DELETE FROM gifts WHERE id=?", (gift_id,))
+    con.commit()
+    con.close()
+
+
+def get_winners(limit: int = 20):
+    """
+    إذا جدول winners موجود نقرأ منه،
+    وإذا ما موجود (أو فارغ) نجيب أعلى الفنيين نقاط.
+    """
+    con = connect()
+    try:
+        rows = con.execute("SELECT * FROM winners ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+        if rows:
+            con.close()
+            return rows
+    except Exception:
+        pass
+
+    # fallback: أعلى نقاط من الفنيين
+    rows = con.execute("""
+        SELECT name, points
+        FROM technicians
+        ORDER BY points DESC, id DESC
+        LIMIT ?
+    """, (limit,)).fetchall()
+    con.close()
+    return rows
