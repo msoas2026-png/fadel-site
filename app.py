@@ -5,6 +5,9 @@ import db
 import mimetypes
 import requests
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # ✅ Supabase Storage (موجود عندك)
 # (نخليه موجود حتى ما نحذف شي، بس راح نعتمد REST تحت)
 from supabase import create_client
@@ -152,6 +155,14 @@ def _delete_from_supabase(public_url: str):
                 sb.storage.from_(SUPABASE_BUCKET).remove([file_path])
     except Exception:
         pass
+
+
+
+
+print("SUPABASE_URL =", SUPABASE_URL)
+print("SUPABASE_SERVICE_ROLE_KEY =", SUPABASE_SERVICE_ROLE_KEY[:10] if SUPABASE_SERVICE_ROLE_KEY else None)
+print("SUPABASE_BUCKET =", SUPABASE_BUCKET)
+
 
 
 # ---------- Init DB + seed super admin ----------
