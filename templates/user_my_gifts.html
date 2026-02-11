@@ -36,7 +36,18 @@
           <div style="display:flex;gap:12px;align-items:center;">
             <div class="gift-thumb">
               {% if r.image_filename %}
-                <img src="{{ url_for('static', filename='uploads/' ~ r.image_filename) }}" alt="">
+                {# 1) إذا مخزون كرابط كامل http/https #}
+                {% if '://' in r.image_filename %}
+                  <img src="{{ r.image_filename }}" alt="">
+
+                {# 2) إذا مخزون كـ path من Supabase مثل gifts/xxx.png #}
+                {% elif storage_public_base %}
+                  <img src="{{ storage_public_base ~ r.image_filename }}" alt="">
+
+                {# 3) إذا مخزون محلي داخل static/uploads #}
+                {% else %}
+                  <img src="{{ url_for('static', filename='uploads/' ~ r.image_filename) }}" alt="">
+                {% endif %}
               {% else %}
                 <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:26px;">🎁</div>
               {% endif %}

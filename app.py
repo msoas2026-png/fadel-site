@@ -2,6 +2,13 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
 import db
+import mimetypes
+import requests
+
+# ✅ Supabase Storage (موجود عندك)
+# (نخليه موجود حتى ما نحذف شي، بس راح نعتمد REST تحت)
+from supabase import create_client
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 app.secret_key = "change-this-secret"
@@ -9,6 +16,71 @@ app.secret_key = "change-this-secret"
 SITE_NAME = "مجمع فاضل البديري"
 UPLOAD_DIR = os.path.join(app.root_path, "static", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# =========================================================
+# ✅ إعدادات Supabase من Environment Variables
+# =========================================================
+
+# (هذا كان مكرر عندك، خليته مرة وحدة وبالأسماء اللي انت حاطها في Render)
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip()
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "gifts").strip()
+
+# ✅ (موجود عندك سابقاً) إذا تريد تستخدم supabase python client
+# خليته موجود بس ما راح نعتمد عليه
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "").strip()
+
+
+def _use_supabase_storage():
+    return bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and SUPABASE_BUCKET)
+
+
+def supabase_public_base():
+    # bucket لازم يكون Public
+    return f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/"
+
+
+def supabase_upload_file(file_storage, folder="gifts"):
+    """
+    ✅ REST Upload
+    يرفع الصورة للـ Supabase Storage ويرجع path نخزنه بالـ DB
+    مثال: gifts/1700000000_image.png
+    """
+    safe = secure_filename(file_storage.filename)
+    filename = f"{int(__import__('time').time())}_{safe}"
+    object_path = f"{folder}/{filename}"
+
+    content_type = file_storage.mimetype or mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    data = file_storage.read()  # bytes
+
+    url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{object_path}"
+    headers = {
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Content-Type": content_type,
+        "x-upsert": "true",
+    }
+
+    r = requests.post(url, headers=headers, data=data)
+    if r.status_code not in (200, 201):
+        raise Exception(f"Supabase upload failed: {r.status_code} {r.text}")
+
+    return object_path  # نخزنه داخل image_filename
+
+
+def supabase_delete_file(object_path):
+    """
+    ✅ REST Delete
+    يحذف ملف من Storage حسب path المخزن بالـ DB
+    """
+    if not object_path:
+        return
+    url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{object_path}"
+    headers = {
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+    }
+    requests.delete(url, headers=headers)
 
 
 # ---------- Helpers ----------
@@ -26,6 +98,60 @@ def current_admin_id():
 
 def current_user_id():
     return session.get("user_id")
+
+
+# =========================================================
+# ✅ Supabase helper functions (موجودة عندك) — نخليها بدون حذف
+# بس راح “نخليها غير مستخدمة” لأن نعتمد REST أعلاه
+# =========================================================
+def _supabase_client():
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return None
+    try:
+        return create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    except Exception:
+        return None
+
+
+def _upload_to_supabase(file_storage, filename: str):
+    """
+    (غير مستخدم حالياً) — موجود فقط حتى ما نحذف شي
+    """
+    sb = _supabase_client()
+    if sb is None:
+        return None
+
+    try:
+        data = file_storage.read()
+        content_type = file_storage.mimetype or "application/octet-stream"
+        sb.storage.from_(SUPABASE_BUCKET).upload(
+            path=filename,
+            file=data,
+            file_options={"content-type": content_type, "upsert": True},
+        )
+        public_url = sb.storage.from_(SUPABASE_BUCKET).get_public_url(filename)
+        return public_url
+    except Exception:
+        return None
+
+
+def _delete_from_supabase(public_url: str):
+    """
+    (غير مستخدم حالياً) — موجود فقط حتى ما نحذف شي
+    """
+    sb = _supabase_client()
+    if sb is None:
+        return
+
+    try:
+        path = urlparse(public_url).path
+        marker = f"/object/public/{SUPABASE_BUCKET}/"
+        if marker in path:
+            file_path = path.split(marker, 1)[1]
+            if file_path:
+                sb.storage.from_(SUPABASE_BUCKET).remove([file_path])
+    except Exception:
+        pass
 
 
 # ---------- Init DB + seed super admin ----------
@@ -261,7 +387,13 @@ def admin_gifts():
     con = db.connect()
     gifts = con.execute("SELECT * FROM gifts ORDER BY id DESC").fetchall()
     con.close()
-    return render_template("admin_gifts.html", site_name=SITE_NAME, gifts=gifts)
+
+    return render_template(
+        "admin_gifts.html",
+        site_name=SITE_NAME,
+        gifts=gifts,
+        storage_public_base=supabase_public_base() if _use_supabase_storage() else None
+    )
 
 
 @app.get("/admin/gifts/new")
@@ -286,9 +418,21 @@ def admin_gift_new_post():
 
     filename = None
     if file and file.filename:
-        safe = secure_filename(file.filename)
-        filename = f"{int(__import__('time').time())}_{safe}"
-        file.save(os.path.join(UPLOAD_DIR, filename))
+        try:
+            if _use_supabase_storage():
+                # ✅ Supabase Storage (REST)
+                filename = supabase_upload_file(file, folder="gifts")
+            else:
+                # ✅ fallback محلي
+                safe = secure_filename(file.filename)
+                filename = f"{int(__import__('time').time())}_{safe}"
+                file.save(os.path.join(UPLOAD_DIR, filename))
+        except Exception:
+            # إذا فشل رفع supabase لأي سبب، نخليه محلي
+            safe = secure_filename(file.filename)
+            filename = f"{int(__import__('time').time())}_{safe}"
+            file.seek(0)
+            file.save(os.path.join(UPLOAD_DIR, filename))
 
     con = db.connect()
     con.execute("""
@@ -321,13 +465,30 @@ def admin_delete_gift(gift_id):
     if not admin_required():
         return redirect(url_for("admin_login"))
 
-    # جلب الهدية حتى نحذف الصورة من uploads
     gift = db.get_gift_by_id(gift_id)
     if gift and gift["image_filename"]:
-        img_path = os.path.join(UPLOAD_DIR, gift["image_filename"])
         try:
-            if os.path.exists(img_path):
-                os.remove(img_path)
+            img_val = str(gift["image_filename"])
+
+            # ✅ (إضافة جديدة) إذا كانت الصورة رابط كامل قديم:
+            # نحاول نستخرج object_path ونحذفه من Supabase
+            if _use_supabase_storage() and img_val.startswith("http"):
+                marker = f"/storage/v1/object/public/{SUPABASE_BUCKET}/"
+                if marker in img_val:
+                    object_path = img_val.split(marker, 1)[1]
+                    if object_path:
+                        supabase_delete_file(object_path)
+
+            # ✅ إذا نخزن path مثل gifts/xxx.png
+            elif _use_supabase_storage() and ("/" in img_val) and (not img_val.startswith("http")):
+                supabase_delete_file(img_val)
+
+            else:
+                # ✅ حذف محلي (قديمة)
+                img_path = os.path.join(UPLOAD_DIR, img_val)
+                if os.path.exists(img_path):
+                    os.remove(img_path)
+
         except Exception:
             pass
 
@@ -391,7 +552,14 @@ def user_gifts():
     user = con.execute("SELECT id,points FROM technicians WHERE id=?", (current_user_id(),)).fetchone()
     gifts = con.execute("SELECT * FROM gifts WHERE is_active=1 ORDER BY points_required ASC").fetchall()
     con.close()
-    return render_template("user_gifts.html", site_name=SITE_NAME, user=user, gifts=gifts)
+
+    return render_template(
+        "user_gifts.html",
+        site_name=SITE_NAME,
+        user=user,
+        gifts=gifts,
+        storage_public_base=supabase_public_base() if _use_supabase_storage() else None
+    )
 
 
 @app.post("/gifts/<int:gift_id>/redeem")
@@ -439,7 +607,13 @@ def user_my_gifts():
         ORDER BY r.id DESC
     """, (current_user_id(),)).fetchall()
     con.close()
-    return render_template("user_my_gifts.html", site_name=SITE_NAME, rows=rows)
+
+    return render_template(
+        "user_my_gifts.html",
+        site_name=SITE_NAME,
+        rows=rows,
+        storage_public_base=supabase_public_base() if _use_supabase_storage() else None
+    )
 
 
 # ---------- Winners (Public) ----------
