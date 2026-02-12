@@ -34,17 +34,19 @@
       {% for r in rows %}
         <div class="quick-item" style="padding:12px;text-align:right;">
           <div style="display:flex;gap:12px;align-items:center;">
+
             <div class="gift-thumb">
               {% if r.image_filename %}
-                {% if '://' in r.image_filename %}
-                  <img src="{{ r.image_filename }}" alt="">
+
+                {# 🔥 إذا الصورة مخزنة في Supabase #}
+                {% if storage_public_base and '/' in r.image_filename %}
+                  <img src="{{ storage_public_base }}{{ r.image_filename }}" alt="">
+
+                {# 🔥 إذا صورة قديمة مخزنة محلياً #}
                 {% else %}
-                  {% if storage_public_base %}
-                    <img src="{{ storage_public_base ~ r.image_filename }}" alt="">
-                  {% else %}
-                    <img src="{{ url_for('static', filename='uploads/' ~ r.image_filename) }}" alt="">
-                  {% endif %}
+                  <img src="{{ url_for('static', filename='uploads/' ~ r.image_filename) }}" alt="">
                 {% endif %}
+
               {% else %}
                 <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:26px;">🎁</div>
               {% endif %}
@@ -53,10 +55,12 @@
             <div style="flex:1;">
               <div style="font-weight:900;">{{ r.name }}</div>
               <div class="muted small" style="margin-top:4px;">📅 {{ r.created_at }}</div>
+
               <div class="small" style="margin-top:8px;display:inline-block;background:rgba(245,196,0,.14);border:1px solid rgba(245,196,0,.18);padding:6px 10px;border-radius:999px;">
                 نقاط مصروفة: {{ r.points_spent }}
               </div>
             </div>
+
           </div>
         </div>
       {% endfor %}

@@ -53,7 +53,15 @@
           <div style="display:flex;gap:12px;align-items:center;">
             <div class="gift-thumb">
               {% if g.image_filename %}
-                <img src="{{ url_for('static', filename='uploads/' ~ g.image_filename) }}" alt="">
+
+                {# ✅ Supabase: نخزن path مثل gifts/xxx.jpg #}
+                {% if storage_public_base and '/' in g.image_filename %}
+                  <img src="{{ storage_public_base }}{{ g.image_filename }}" alt="">
+                {% else %}
+                  {# ✅ Local قديم #}
+                  <img src="{{ url_for('static', filename='uploads/' ~ g.image_filename) }}" alt="">
+                {% endif %}
+
               {% else %}
                 <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:26px;">🎁</div>
               {% endif %}
@@ -64,7 +72,7 @@
               <div class="muted small" style="margin-top:4px;">{{ g.points_required }} نقطة</div>
 
               <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
-                
+
                 <!-- زر التفعيل -->
                 <form method="post" action="{{ url_for('admin_gift_toggle', gift_id=g.id) }}">
                   <button class="btn-yellow" type="submit" style="width:auto;padding:10px 14px;border-radius:14px;">

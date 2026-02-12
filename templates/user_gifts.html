@@ -46,18 +46,15 @@
             <div style="display:flex;gap:12px;align-items:center;">
               <div class="gift-thumb">
                 {% if g.image_filename %}
-                  {# 1) إذا مخزن رابط كامل (قديم) #}
-                  {% if '://' in g.image_filename %}
-                    <img src="{{ g.image_filename }}" alt="">
+                  {% if storage_public_base and '/' in g.image_filename %}
+                    <img src="{{ storage_public_base }}{{ g.image_filename }}" alt="">
                   {% else %}
-                    {# 2) إذا عندنا supabase base (الحالة الجديدة) #}
-                    {% if storage_public_base %}
-                      <img src="{{ storage_public_base ~ g.image_filename }}" alt="">
-                    {% else %}
-                      {# 3) fallback محلي #}
-                      <img src="{{ url_for('static', filename='uploads/' ~ g.image_filename) }}" alt="">
-                    {% endif %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ g.image_filename) }}" alt="">
                   {% endif %}
+                {% else %}
+                    <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:26px;">🎁</div>
+                {% endif %}
+
                 {% else %}
                   <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:26px;">🎁</div>
                 {% endif %}
