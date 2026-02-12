@@ -44,17 +44,10 @@
         {% for g in gifts %}
           <div class="quick-item" style="padding:12px;text-align:right;">
             <div style="display:flex;gap:12px;align-items:center;">
+
               <div class="gift-thumb">
                 {% if g.image_filename %}
-                  {% if storage_public_base and '/' in g.image_filename %}
-                    <img src="{{ storage_public_base }}{{ g.image_filename }}" alt="">
-                  {% else %}
-                    <img src="{{ url_for('static', filename='uploads/' ~ g.image_filename) }}" alt="">
-                  {% endif %}
-                {% else %}
-                    <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:26px;">🎁</div>
-                {% endif %}
-
+                  <img src="{{ gift_image_url(g.image_filename) }}" alt="">
                 {% else %}
                   <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:26px;">🎁</div>
                 {% endif %}
@@ -76,6 +69,7 @@
                     </button>
                   {% endif %}
                 </div>
+
               </div>
             </div>
           </div>

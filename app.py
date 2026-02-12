@@ -23,8 +23,6 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 # =========================================================
 # ✅ إعدادات Supabase من Environment Variables
 # =========================================================
-
-# (هذا كان مكرر عندك، خليته مرة وحدة وبالأسماء اللي انت حاطها في Render)
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip()
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "gifts").strip()
@@ -157,12 +155,38 @@ def _delete_from_supabase(public_url: str):
         pass
 
 
+# =========================================================
+# ✅ NEW: دالة موحّدة تبني رابط الصورة صح (Supabase / محلي / رابط كامل)
+# =========================================================
+def gift_image_url(image_filename):
+    """
+    يرجّع رابط الصورة الصحيح:
+    - إذا DB مخزن رابط كامل => يرجعه مثل ما هو
+    - إذا DB مخزن path مثل gifts/xxx.jpg و Supabase شغال => يرجع public url
+    - غير ذلك => يرجع رابط static/uploads المحلي
+    """
+    if not image_filename:
+        return None
+
+    s = str(image_filename).strip()
+    if not s:
+        return None
+
+    # رابط كامل
+    if "://" in s:
+        return s
+
+    # Supabase path مثل: gifts/xxx.jpg
+    if _use_supabase_storage() and "/" in s:
+        return supabase_public_base() + s
+
+    # محلي
+    return url_for("static", filename="uploads/" + s)
 
 
 print("SUPABASE_URL =", SUPABASE_URL)
 print("SUPABASE_SERVICE_ROLE_KEY =", SUPABASE_SERVICE_ROLE_KEY[:10] if SUPABASE_SERVICE_ROLE_KEY else None)
 print("SUPABASE_BUCKET =", SUPABASE_BUCKET)
-
 
 
 # ---------- Init DB + seed super admin ----------
@@ -395,6 +419,7 @@ def admin_points_add():
 def admin_gifts():
     if not admin_required():
         return redirect(url_for("admin_login"))
+
     con = db.connect()
     gifts = con.execute("SELECT * FROM gifts ORDER BY id DESC").fetchall()
     con.close()
@@ -403,6 +428,7 @@ def admin_gifts():
         "admin_gifts.html",
         site_name=SITE_NAME,
         gifts=gifts,
+        gift_image_url=gift_image_url,  # ✅ NEW
         storage_public_base=supabase_public_base() if _use_supabase_storage() else None
     )
 
@@ -569,6 +595,7 @@ def user_gifts():
         site_name=SITE_NAME,
         user=user,
         gifts=gifts,
+        gift_image_url=gift_image_url,  # ✅ NEW
         storage_public_base=supabase_public_base() if _use_supabase_storage() else None
     )
 
@@ -623,6 +650,7 @@ def user_my_gifts():
         "user_my_gifts.html",
         site_name=SITE_NAME,
         rows=rows,
+        gift_image_url=gift_image_url,  # ✅ NEW
         storage_public_base=supabase_public_base() if _use_supabase_storage() else None
     )
 

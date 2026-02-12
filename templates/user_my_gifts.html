@@ -37,16 +37,7 @@
 
             <div class="gift-thumb">
               {% if r.image_filename %}
-
-                {# 🔥 إذا الصورة مخزنة في Supabase #}
-                {% if storage_public_base and '/' in r.image_filename %}
-                  <img src="{{ storage_public_base }}{{ r.image_filename }}" alt="">
-
-                {# 🔥 إذا صورة قديمة مخزنة محلياً #}
-                {% else %}
-                  <img src="{{ url_for('static', filename='uploads/' ~ r.image_filename) }}" alt="">
-                {% endif %}
-
+                <img src="{{ gift_image_url(r.image_filename) }}" alt="">
               {% else %}
                 <div style="height:100%;display:flex;align-items:center;justify-content:center;opacity:.6;font-size:26px;">🎁</div>
               {% endif %}
