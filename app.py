@@ -666,11 +666,13 @@ def admin_winners():
     if not admin_required():
         return redirect(url_for("admin_login"))
 
+    status_filter = request.args.get("status", "all").strip()  # all | pending | delivered
+
     con = db.connect()
 
-    # كل من استبدل هدية = رابح
-    rows = con.execute("""
+    base_sql = """
         SELECT
+            r.id AS redemption_id,
             t.name AS tech_name,
             g.name AS gift_name,
             g.image_filename AS image_filename,
@@ -679,19 +681,49 @@ def admin_winners():
         FROM redemptions r
         JOIN technicians t ON t.id = r.tech_id
         JOIN gifts g ON g.id = r.gift_id
-        ORDER BY r.id DESC
-        LIMIT 200
-    """).fetchall()
+    """
 
+    params = []
+    if status_filter in ("pending", "delivered"):
+        base_sql += " WHERE r.status = ? "
+        params.append(status_filter)
+
+    base_sql += " ORDER BY r.id DESC LIMIT 200 "
+
+    rows = con.execute(base_sql, tuple(params)).fetchall()
     con.close()
 
     return render_template(
         "admin_winners.html",
         site_name=SITE_NAME,
         winners=rows,
+        status_filter=status_filter,
         gift_image_url=gift_image_url,
         storage_public_base=supabase_public_base() if _use_supabase_storage() else None
     )
+
+
+@app.post("/admin/redemptions/<int:redemption_id>/toggle")
+def admin_toggle_redemption_status(redemption_id):
+    if not admin_required():
+        return redirect(url_for("admin_login"))
+
+    con = db.connect()
+    row = con.execute("SELECT status FROM redemptions WHERE id=?", (redemption_id,)).fetchone()
+    if not row:
+        con.close()
+        flash("العنصر غير موجود", "err")
+        return redirect(url_for("admin_winners"))
+
+    current = (row["status"] or "pending").strip().lower()
+    new_status = "delivered" if current != "delivered" else "pending"
+
+    con.execute("UPDATE redemptions SET status=? WHERE id=?", (new_status, redemption_id))
+    con.commit()
+    con.close()
+
+    flash("تم تحديث حالة الاستلام", "ok")
+    return redirect(url_for("admin_winners", status=request.args.get("status", "all")))
 
 
 
@@ -735,4 +767,5 @@ def admin_settings_post():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
