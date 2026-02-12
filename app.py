@@ -661,16 +661,21 @@ def winners():
     winners_list = db.get_winners()
     return render_template("winners.html", site_name=SITE_NAME, winners=winners_list)
 
+
+
 @app.get("/admin/winners")
 def admin_winners():
     if not admin_required():
         return redirect(url_for("admin_login"))
 
-    status_filter = request.args.get("status", "all").strip()  # all | pending | delivered
+    # pending (غير مستلم) | delivered (مستلم)
+    status_filter = request.args.get("status", "pending").strip()
+
+    if status_filter not in ("pending", "delivered"):
+        status_filter = "pending"
 
     con = db.connect()
-
-    base_sql = """
+    rows = con.execute("""
         SELECT
             r.id AS redemption_id,
             t.name AS tech_name,
@@ -681,16 +686,10 @@ def admin_winners():
         FROM redemptions r
         JOIN technicians t ON t.id = r.tech_id
         JOIN gifts g ON g.id = r.gift_id
-    """
-
-    params = []
-    if status_filter in ("pending", "delivered"):
-        base_sql += " WHERE r.status = ? "
-        params.append(status_filter)
-
-    base_sql += " ORDER BY r.id DESC LIMIT 200 "
-
-    rows = con.execute(base_sql, tuple(params)).fetchall()
+        WHERE r.status = ?
+        ORDER BY r.id DESC
+        LIMIT 200
+    """, (status_filter,)).fetchall()
     con.close()
 
     return render_template(
@@ -698,13 +697,12 @@ def admin_winners():
         site_name=SITE_NAME,
         winners=rows,
         status_filter=status_filter,
-        gift_image_url=gift_image_url,
-        storage_public_base=supabase_public_base() if _use_supabase_storage() else None
+        gift_image_url=gift_image_url
     )
 
 
-@app.post("/admin/redemptions/<int:redemption_id>/toggle")
-def admin_toggle_redemption_status(redemption_id):
+@app.post("/admin/redemptions/<int:redemption_id>/deliver")
+def admin_mark_delivered(redemption_id):
     if not admin_required():
         return redirect(url_for("admin_login"))
 
@@ -713,17 +711,22 @@ def admin_toggle_redemption_status(redemption_id):
     if not row:
         con.close()
         flash("العنصر غير موجود", "err")
-        return redirect(url_for("admin_winners"))
+        return redirect(url_for("admin_winners", status="pending"))
 
     current = (row["status"] or "pending").strip().lower()
-    new_status = "delivered" if current != "delivered" else "pending"
 
-    con.execute("UPDATE redemptions SET status=? WHERE id=?", (new_status, redemption_id))
+    # فقط إذا غير مستلم نسمح بالتحويل
+    if current != "pending":
+        con.close()
+        flash("هذا الطلب مستلم مسبقاً", "err")
+        return redirect(url_for("admin_winners", status="delivered"))
+
+    con.execute("UPDATE redemptions SET status=? WHERE id=?", ("delivered", redemption_id))
     con.commit()
     con.close()
 
-    flash("تم تحديث حالة الاستلام", "ok")
-    return redirect(url_for("admin_winners", status=request.args.get("status", "all")))
+    flash("تم تأكيد الاستلام ✅", "ok")
+    return redirect(url_for("admin_winners", status="pending"))
 
 
 
@@ -767,5 +770,6 @@ def admin_settings_post():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
