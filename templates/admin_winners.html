@@ -3,12 +3,30 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{ site_name }} - رابحين الأدمن</title>
+  <title>{{ site_name }} - عرض الرابحين</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+  <style>
+    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .chip{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);
+          font-weight:900;text-decoration:none;color:inherit}
+    .chip.active{border-color:rgba(245,196,0,.40);background:rgba(245,196,0,.10);color:#f5c400}
+    .badge{padding:6px 10px;border-radius:999px;font-weight:900;font-size:12px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06)}
+    .badge.ok{border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.10)}
+    .badge.err{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.10)}
+    .btn{padding:10px 12px;border-radius:14px;font-weight:900;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:inherit;cursor:pointer}
+    .btn.primary{border-color:rgba(245,196,0,.35);background:rgba(245,196,0,.12);color:#f5c400}
+    /* Modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:14px}
+    .modal{width:min(420px,100%);border-radius:18px;border:1px solid rgba(255,255,255,.10);background:#0f1b2c;box-shadow:0 20px 60px rgba(0,0,0,.45);padding:14px}
+    .modal h3{margin:0;font-size:18px}
+    .modal p{margin:10px 0 0 0;opacity:.8}
+    .modal-actions{display:flex;gap:10px;justify-content:flex-start;margin-top:14px}
+  </style>
 </head>
 <body>
   <div class="mobile-wrap">
@@ -17,8 +35,15 @@
       <div class="badge-icon">🏆</div>
       <div style="margin-top:10px;">
         <div class="page-title">عرض الرابحين</div>
-        <div class="page-subtitle">كل من استبدل هدية</div>
+        <div class="page-subtitle">مستلمين / غير مستلمين</div>
       </div>
+
+      <div class="filters">
+        <a class="chip {{ 'active' if status_filter=='all' else '' }}" href="{{ url_for('admin_winners', status='all') }}">الكل</a>
+        <a class="chip {{ 'active' if status_filter=='pending' else '' }}" href="{{ url_for('admin_winners', status='pending') }}">غير مستلم</a>
+        <a class="chip {{ 'active' if status_filter=='delivered' else '' }}" href="{{ url_for('admin_winners', status='delivered') }}">مستلم</a>
+      </div>
+
       <div style="margin-top:10px;">
         <a href="{{ url_for('admin_dashboard') }}" style="color:var(--muted);text-decoration:none;font-weight:800;">⬅ رجوع للأدمن</a>
       </div>
@@ -28,7 +53,7 @@
       <div class="section-title">القائمة ({{ winners|length }})</div>
 
       {% if winners|length == 0 %}
-        <div class="muted">لا يوجد رابحين بعد.</div>
+        <div class="muted">لا يوجد عناصر.</div>
       {% endif %}
 
       {% for w in winners %}
@@ -49,19 +74,77 @@
             <div style="font-weight:900;">👤 {{ w.tech_name }}</div>
             <div class="muted small" style="margin-top:6px;">🎁 {{ w.gift_name }}</div>
             <div class="muted small" style="margin-top:6px;">📅 {{ w.won_at }}</div>
+
+            {% if (w.status or 'pending') == 'delivered' %}
+              <div style="margin-top:8px;"><span class="badge ok">✅ مستلم</span></div>
+            {% else %}
+              <div style="margin-top:8px;"><span class="badge err">⏳ غير مستلم</span></div>
+            {% endif %}
           </div>
 
-          <!-- حالة الطلب (اختياري) -->
-          {% if w.status %}
-            <div class="small" style="opacity:.75; font-weight:800;">
-              {{ w.status }}
-            </div>
-          {% endif %}
+          <!-- زر التبديل -->
+          <button
+            class="btn {{ 'primary' if (w.status or 'pending') != 'delivered' else '' }}"
+            onclick="openConfirm('{{ w.redemption_id }}', '{{ w.tech_name|e }}', '{{ w.gift_name|e }}', '{{ w.status or 'pending' }}')"
+            type="button">
+            {% if (w.status or 'pending') == 'delivered' %}
+              إلغاء الاستلام
+            {% else %}
+              تأكيد الاستلام
+            {% endif %}
+          </button>
 
         </div>
       {% endfor %}
     </div>
 
   </div>
+
+  <!-- Modal -->
+  <div id="modalBackdrop" class="modal-backdrop" onclick="closeConfirm(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h3 id="modalTitle">تأكيد</h3>
+      <p id="modalText"></p>
+      <div class="modal-actions">
+        <button class="btn" type="button" onclick="hideModal()">إلغاء</button>
+
+        <form id="confirmForm" method="post">
+          <button class="btn primary" type="submit" id="confirmBtn">تأكيد</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openConfirm(id, techName, giftName, status){
+      const backdrop = document.getElementById('modalBackdrop');
+      const text = document.getElementById('modalText');
+      const title = document.getElementById('modalTitle');
+      const btn = document.getElementById('confirmBtn');
+      const form = document.getElementById('confirmForm');
+
+      const isDelivered = (status === 'delivered');
+      title.textContent = isDelivered ? 'إلغاء الاستلام' : 'تأكيد الاستلام';
+      btn.textContent = isDelivered ? 'نعم، إلغاء' : 'نعم، تأكيد';
+
+      text.textContent = `هل أنت متأكد؟\nالرابح: ${techName}\nالهدية: ${giftName}`;
+
+      // يرجع نفس الفلتر الحالي
+      const params = new URLSearchParams(window.location.search);
+      const statusQ = params.get('status') || 'all';
+
+      form.action = `/admin/redemptions/${id}/toggle?status=${encodeURIComponent(statusQ)}`;
+      backdrop.style.display = 'flex';
+    }
+
+    function hideModal(){
+      document.getElementById('modalBackdrop').style.display = 'none';
+    }
+
+    function closeConfirm(e){
+      // إغلاق إذا ضغطت خارج المودال
+      if(e.target.id === 'modalBackdrop') hideModal();
+    }
+  </script>
 </body>
 </html>
