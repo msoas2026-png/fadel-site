@@ -9,110 +9,236 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+  <style>
+    /* تحسينات بسيطة بدون ما نكسر theme */
+    .tabs{
+      display:flex; gap:10px; margin-top:12px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      padding:8px; border-radius:18px;
+    }
+    .tab{
+      flex:1; text-align:center; padding:12px 10px;
+      border-radius:14px;
+      text-decoration:none;
+      font-weight:900;
+      color:var(--muted);
+      border:1px solid transparent;
+      background:transparent;
+    }
+    .tab.active{
+      color:#f5c400;
+      background:rgba(245,196,0,.10);
+      border-color:rgba(245,196,0,.25);
+    }
+
+    .winner-card{
+      display:flex; align-items:center; gap:12px;
+      padding:14px; text-align:right;
+    }
+
+    .thumb{
+      width:64px; height:64px; border-radius:16px;
+      overflow:hidden; flex:0 0 64px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .thumb img{width:100%; height:100%; object-fit:cover;}
+
+    .meta{flex:1; min-width:0;}
+    .meta .name{font-weight:900; font-size:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .meta .line{margin-top:6px; opacity:.85; font-weight:700; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .meta .date{margin-top:8px; opacity:.7; font-weight:700; font-size:12px;}
+
+    .side{
+      display:flex; flex-direction:column; align-items:flex-start; gap:10px;
+      flex:0 0 auto;
+    }
+
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px; border-radius:999px;
+      font-weight:900; font-size:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      white-space:nowrap;
+    }
+    .badge.pending{border-color:rgba(248,113,113,.28); background:rgba(248,113,113,.10); color:#ffb3b3;}
+    .badge.delivered{border-color:rgba(52,211,153,.28); background:rgba(52,211,153,.10); color:#aaffc3;}
+
+    .btn-small{
+      padding:10px 12px;
+      border-radius:14px;
+      font-weight:900;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.06);
+      color:inherit;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .btn-small.primary{
+      border-color:rgba(245,196,0,.30);
+      background:rgba(245,196,0,.12);
+      color:#f5c400;
+    }
+
+    /* Flash box */
+    .flash{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      font-weight:800;
+    }
+    .flash.ok{border-color:rgba(52,211,153,.25); background:rgba(52,211,153,.10); color:#aaffc3;}
+    .flash.err{border-color:rgba(248,113,113,.25); background:rgba(248,113,113,.10); color:#ffb3b3;}
+
+    /* Modal */
+    .modal-backdrop{
+      position:fixed; inset:0; z-index:9999;
+      background:rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center;
+      padding:16px;
+    }
+    .modal{
+      width:min(440px, 100%);
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(15,27,44,.95);
+      box-shadow:0 24px 60px rgba(0,0,0,.45);
+      padding:16px;
+    }
+    .modal-title{font-size:18px; font-weight:900; margin:0;}
+    .modal-text{margin-top:10px; opacity:.85; font-weight:700; line-height:1.7; white-space:pre-line;}
+    .modal-actions{display:flex; gap:10px; margin-top:14px;}
+    .modal-actions .btn-small{flex:1;}
+  </style>
 </head>
 
 <body>
-<div class="mobile-wrap">
+  <div class="mobile-wrap">
 
-  <!-- رأس الصفحة -->
-  <div class="top-card">
-    <div class="badge-icon">🏆</div>
-    <div style="margin-top:10px;">
-      <div class="page-title">عرض الرابحين</div>
-      <div class="page-subtitle">غير المستلمين / المستلم</div>
+    <div class="top-card">
+      <div class="badge-icon">🏆</div>
+      <div style="margin-top:10px;">
+        <div class="page-title">عرض الرابحين</div>
+        <div class="page-subtitle">إدارة الاستلام</div>
+      </div>
+
+      <div class="tabs">
+        <a class="tab {{ 'active' if status_filter=='pending' else '' }}"
+           href="{{ url_for('admin_winners', status='pending') }}">غير المستلمين</a>
+        <a class="tab {{ 'active' if status_filter=='delivered' else '' }}"
+           href="{{ url_for('admin_winners', status='delivered') }}">المستلم</a>
+      </div>
+
+      <div style="margin-top:12px;">
+        <a href="{{ url_for('admin_dashboard') }}"
+           style="color:var(--muted);text-decoration:none;font-weight:800;">⬅ رجوع للأدمن</a>
+      </div>
     </div>
 
-    <div style="margin-top:12px;">
-      <a href="{{ url_for('admin_dashboard') }}"
-         style="color:var(--muted);text-decoration:none;font-weight:800;">
-        ← رجوع للأدمن
-      </a>
-    </div>
-  </div>
+    <!-- رسائل الفلاش -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="flash {{ 'ok' if cat=='ok' else 'err' }}">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
+    <div class="section">
+      <div class="section-title">القائمة ({{ winners|length }})</div>
 
-  <!-- الفلاتر -->
-  <div class="section">
-    <div style="display:flex;gap:10px;justify-content:center;margin-bottom:15px;">
+      {% if winners|length == 0 %}
+        <div class="muted">لا يوجد بيانات.</div>
+      {% endif %}
 
-      <a href="{{ url_for('admin_winners', status='pending') }}"
-         class="btn {{ 'primary' if status_filter=='pending' else '' }}">
-        غير المستلمين
-      </a>
+      {% for w in winners %}
+        <div class="quick-item winner-card">
 
-      <a href="{{ url_for('admin_winners', status='delivered') }}"
-         class="btn {{ 'primary' if status_filter=='delivered' else '' }}">
-        المستلم
-      </a>
-
-    </div>
-  </div>
-
-
-  <!-- القائمة -->
-  <div class="section">
-    <div class="section-title">القائمة ({{ winners|length }})</div>
-
-    {% if winners|length == 0 %}
-      <div class="muted">لا يوجد بيانات.</div>
-    {% endif %}
-
-    {% for w in winners %}
-      <div class="quick-item" style="padding:14px;text-align:right;">
-
-        <!-- الاسم -->
-        <div style="font-weight:900;font-size:18px;">
-          👤 {{ w.tech_name }}
-        </div>
-
-        <!-- اسم الهدية -->
-        <div class="muted small" style="margin-top:6px;">
-          🎁 {{ w.gift_name }}
-        </div>
-
-        <!-- التاريخ -->
-        <div class="muted small" style="margin-top:6px;">
-          📅 {{ w.won_at }}
-        </div>
-
-        <!-- صورة الهدية -->
-        {% if w.image_filename %}
-          <div style="margin-top:10px;">
-            <img src="{{ gift_image_url(w.image_filename) }}"
-                 style="width:70px;height:70px;border-radius:10px;object-fit:cover;">
+          <!-- صورة -->
+          <div class="thumb">
+            {% set img = gift_image_url(w.image_filename) if w.image_filename else None %}
+            {% if img %}
+              <img src="{{ img }}" alt="gift">
+            {% else %}
+              <span style="opacity:.65;font-size:22px;">🎁</span>
+            {% endif %}
           </div>
-        {% endif %}
 
-        <!-- الحالة -->
-        <div style="margin-top:12px;">
-          {% if (w.status or 'pending') == 'pending' %}
-            <span class="btn" style="background:#442e2e;color:#ffb3b3;">
-              ⏳ غير مستلم
-            </span>
-          {% else %}
-            <span class="btn" style="background:#1e3f2d;color:#aaffc3;">
-              ✅ مستلم
-            </span>
-          {% endif %}
-        </div>
+          <!-- معلومات -->
+          <div class="meta">
+            <div class="name">👤 {{ w.tech_name }}</div>
+            <div class="line">🎁 {{ w.gift_name }}</div>
+            <div class="date">📅 {{ w.won_at }}</div>
+          </div>
 
-        <!-- زر التأكيد فقط لغير المستلمين -->
-        {% if (w.status or 'pending') == 'pending' %}
-          <div style="margin-top:12px;">
-            <form method="post"
-                  action="{{ url_for('admin_mark_delivered', redemption_id=w.redemption_id) }}"
-                  onsubmit="return confirm('هل أنت متأكد من تأكيد الاستلام؟\nالرابح: {{ w.tech_name }}\nالهدية: {{ w.gift_name }}');">
-              <button class="btn primary" type="submit">
+          <!-- الحالة + زر -->
+          <div class="side">
+            {% if (w.status or 'pending') == 'pending' %}
+              <span class="badge pending">⏳ غير مستلم</span>
+
+              <!-- فورم مخفي (نرسله من المودال) -->
+              <form id="deliverForm{{ w.redemption_id }}"
+                    method="post"
+                    action="{{ url_for('admin_mark_delivered', redemption_id=w.redemption_id) }}"></form>
+
+              <button class="btn-small primary" type="button"
+                      onclick="openConfirm('{{ w.redemption_id }}', '{{ w.tech_name|e }}', '{{ w.gift_name|e }}')">
                 تأكيد الاستلام
               </button>
-            </form>
+            {% else %}
+              <span class="badge delivered">✅ مستلم</span>
+            {% endif %}
           </div>
-        {% endif %}
 
-      </div>
-    {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
   </div>
 
-</div>
+  <!-- Modal تأكيد حلو -->
+  <div id="modalBackdrop" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h3 class="modal-title">تأكيد الاستلام</h3>
+      <div id="modalText" class="modal-text"></div>
+
+      <div class="modal-actions">
+        <button class="btn-small" type="button" onclick="hideModal()">إلغاء</button>
+        <button class="btn-small primary" type="button" onclick="confirmDeliver()">نعم، تأكيد</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let _targetFormId = null;
+
+    function openConfirm(id, techName, giftName){
+      _targetFormId = "deliverForm" + id;
+      document.getElementById("modalText").textContent =
+        `هل أنت متأكد من تأكيد الاستلام؟\n\nالرابح: ${techName}\nالهدية: ${giftName}`;
+      document.getElementById("modalBackdrop").style.display = "flex";
+    }
+
+    function hideModal(){
+      document.getElementById("modalBackdrop").style.display = "none";
+      _targetFormId = null;
+    }
+
+    function closeModal(e){
+      if(e.target.id === "modalBackdrop") hideModal();
+    }
+
+    function confirmDeliver(){
+      if(!_targetFormId) return;
+      const f = document.getElementById(_targetFormId);
+      if(f) f.submit();
+    }
+  </script>
 </body>
 </html>
