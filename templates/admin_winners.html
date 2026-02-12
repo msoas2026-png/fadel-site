@@ -12,21 +12,11 @@
 
   <style>
     /* Tabs using your theme look */
-    .tabs-wrap{
-      display:flex;
-      gap:10px;
-      margin-top:12px;
-    }
+    .tabs-wrap{display:flex;gap:10px;margin-top:12px;}
     .tab-btn{
-      flex:1;
-      text-align:center;
-      padding:12px 12px;
-      border-radius:16px;
-      border:1px solid var(--stroke);
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      text-decoration:none;
-      font-weight:900;
+      flex:1;text-align:center;padding:12px 12px;border-radius:16px;
+      border:1px solid var(--stroke);background: rgba(255,255,255,.06);
+      color: var(--text);text-decoration:none;font-weight:900;
     }
     .tab-btn.active{
       background: rgba(245,196,0,.12);
@@ -42,40 +32,26 @@
       gap:12px;
       justify-content:space-between;
     }
-    .winner-info{
-      flex:1;
-      min-width:0;
-    }
+    .winner-info{flex:1;min-width:0;}
     .winner-name{
-      font-weight:900;
-      font-size:18px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      font-weight:900;font-size:18px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     }
     .winner-line{
-      margin-top:6px;
-      color: var(--muted);
-      font-weight:800;
-      font-size:13px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      margin-top:6px;color: var(--muted);
+      font-weight:800;font-size:13px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     }
 
     /* Status pill */
     .status-pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 12px;
-      border-radius:999px;
-      font-weight:900;
-      font-size:12px;
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 12px;border-radius:999px;
+      font-weight:900;font-size:12px;
       border:1px solid var(--stroke);
       background: rgba(255,255,255,.06);
-      margin-top:10px;
       width: fit-content;
+      margin:0; /* نخليها صف واحد */
     }
     .status-pill.pending{
       border-color: rgba(248,113,113,.28);
@@ -88,36 +64,38 @@
       color: #aaffc3;
     }
 
-    /* Right actions */
-    .winner-actions{
+    /* Row for (status + button) */
+    .status-row{
+      margin-top:10px;
       display:flex;
-      flex-direction:column;
+      align-items:center;
       gap:10px;
-      align-items:flex-start;
-      flex:0 0 auto;
+      flex-wrap:wrap;
     }
-    .btn-mini{
-      border:1px solid rgba(245,196,0,.25);
-      background: rgba(245,196,0,.10);
-      color: var(--yellow);
-      padding:10px 12px;
-      border-radius:14px;
+
+    /* Strong yellow confirm button */
+    .btn-confirm{
+      background:#f5c400;
+      color:#0a1222;
+      border:none;
+      padding:9px 14px;
+      border-radius:999px;
       font-weight:900;
       cursor:pointer;
+      box-shadow:0 8px 22px rgba(245,196,0,.35);
+      transition: transform .12s ease, filter .12s ease;
       white-space:nowrap;
     }
+    .btn-confirm:active{transform:scale(.98);}
+    .btn-confirm:hover{filter:brightness(1.03);}
 
     /* Modal - custom classes to avoid conflict with .modal in your theme */
     .wmodal-backdrop{
-      position:fixed;
-      inset:0;
+      position:fixed;inset:0;
       background: rgba(0,0,0,.60);
       backdrop-filter: blur(6px);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index: 99999;
-      padding: 14px;
+      display:none;align-items:center;justify-content:center;
+      z-index: 99999;padding: 14px;
     }
     .wmodal{
       width: min(420px, 100%);
@@ -127,43 +105,24 @@
       box-shadow: 0 20px 60px rgba(0,0,0,.45);
       padding: 16px;
     }
-    .wmodal-title{
-      font-weight: 900;
-      font-size: 18px;
-      margin: 0;
-    }
+    .wmodal-title{font-weight: 900;font-size: 18px;margin: 0;}
     .wmodal-text{
-      margin-top: 10px;
-      color: var(--muted);
-      font-weight: 800;
-      line-height: 1.8;
-      white-space: pre-line;
-      font-size: 13px;
+      margin-top: 10px;color: var(--muted);
+      font-weight: 800;line-height: 1.8;
+      white-space: pre-line;font-size: 13px;
     }
-    .wmodal-actions{
-      display:flex;
-      gap:10px;
-      margin-top: 14px;
-    }
+    .wmodal-actions{display:flex;gap:10px;margin-top: 14px;}
     .wbtn-cancel{
-      flex:1;
-      border:1px solid var(--stroke);
+      flex:1;border:1px solid var(--stroke);
       background: rgba(255,255,255,.06);
       color: var(--text);
-      padding: 12px 14px;
-      border-radius: 14px;
-      font-weight: 900;
-      cursor:pointer;
+      padding: 12px 14px;border-radius: 14px;
+      font-weight: 900;cursor:pointer;
     }
     .wbtn-ok{
-      flex:1;
-      border:0;
-      background: var(--yellow);
-      color:#0a1222;
-      padding: 12px 14px;
-      border-radius: 14px;
-      font-weight: 900;
-      cursor:pointer;
+      flex:1;border:0;background: var(--yellow);
+      color:#0a1222;padding: 12px 14px;
+      border-radius: 14px;font-weight: 900;cursor:pointer;
     }
   </style>
 </head>
@@ -218,26 +177,27 @@
               <div class="winner-line">🎁 {{ w.gift_name }}</div>
               <div class="winner-line">📅 {{ w.won_at }}</div>
 
-              {% if (w.status or 'pending') == 'delivered' %}
-                <div class="status-pill delivered">✅ مستلم</div>
-              {% else %}
-                <div class="status-pill pending">⏳ غير مستلم</div>
-              {% endif %}
-            </div>
+              <!-- ✅ status + confirm button in same row -->
+              <div class="status-row">
+                {% if (w.status or 'pending') == 'delivered' %}
+                  <div class="status-pill delivered">✅ مستلم</div>
+                {% else %}
+                  <div class="status-pill pending">⏳ غير مستلم</div>
 
-            {% if (w.status or 'pending') == 'pending' %}
-              <div class="winner-actions">
-                <!-- fixed action form (no hanging / no JS action changes) -->
-                <form id="deliverForm{{ w.redemption_id }}"
-                      method="post"
-                      action="{{ url_for('admin_mark_delivered', redemption_id=w.redemption_id) }}"></form>
+                  <!-- fixed action form -->
+                  <form id="deliverForm{{ w.redemption_id }}"
+                        method="post"
+                        action="{{ url_for('admin_mark_delivered', redemption_id=w.redemption_id) }}"
+                        style="margin:0;"></form>
 
-                <button class="btn-mini" type="button"
-                        onclick="openConfirm('{{ w.redemption_id }}','{{ w.tech_name|e }}','{{ w.gift_name|e }}')">
-                  تأكيد الاستلام
-                </button>
+                  <button class="btn-confirm" type="button"
+                          onclick="openConfirm('{{ w.redemption_id }}','{{ w.tech_name|e }}','{{ w.gift_name|e }}')">
+                    تأكيد الاستلام
+                  </button>
+                {% endif %}
               </div>
-            {% endif %}
+
+            </div>
 
           </div>
         </div>
