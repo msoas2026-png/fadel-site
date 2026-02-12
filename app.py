@@ -661,6 +661,39 @@ def winners():
     winners_list = db.get_winners()
     return render_template("winners.html", site_name=SITE_NAME, winners=winners_list)
 
+@app.get("/admin/winners")
+def admin_winners():
+    if not admin_required():
+        return redirect(url_for("admin_login"))
+
+    con = db.connect()
+
+    # كل من استبدل هدية = رابح
+    rows = con.execute("""
+        SELECT
+            t.name AS tech_name,
+            g.name AS gift_name,
+            g.image_filename AS image_filename,
+            r.created_at AS won_at,
+            r.status AS status
+        FROM redemptions r
+        JOIN technicians t ON t.id = r.tech_id
+        JOIN gifts g ON g.id = r.gift_id
+        ORDER BY r.id DESC
+        LIMIT 200
+    """).fetchall()
+
+    con.close()
+
+    return render_template(
+        "admin_winners.html",
+        site_name=SITE_NAME,
+        winners=rows,
+        gift_image_url=gift_image_url,
+        storage_public_base=supabase_public_base() if _use_supabase_storage() else None
+    )
+
+
 
 # ===============================
 # ADMIN SETTINGS (تغيير بيانات الأدمن)
@@ -702,3 +735,4 @@ def admin_settings_post():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
